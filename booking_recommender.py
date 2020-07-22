@@ -11,19 +11,19 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import MySQLdb
 from sqlalchemy import create_engine
-engine_slave = create_engine('mysql+mysqldb://dbaread:8TvWzIH0n&yiqg3g@localhost:3308/yhouse', connect_args={'charset':'utf8'})
+engine_subordinate = create_engine('mysql+mysqldb://dbaread:8TvWzIH0n&yiqg3g@localhost:3308/yhouse', connect_args={'charset':'utf8'})
 
 import pandas as pd
 purchase_no = pd.read_sql_query("""select a.meal_info_id, sum(1/a.day_diff) purchase_cnt, sum(a.pay_amount/a.day_diff) pay_amount, sum(a.discount_amount/a.day_diff) discount_amount FROM
 (select meal_info_id, DATEDIFF(date(NOW()),date(pay_time)) day_diff, pay_amount/100 pay_amount, discount_amount/100 discount_amount from meal_subscribe
 where `status`=4
 and contact_name not like '%%测试%%') a
-GROUP BY a.meal_info_id""", engine_slave)    
+GROUP BY a.meal_info_id""", engine_subordinate)    
 
 basket_no = pd.read_sql_query("""select meal_info_id, sum(1/DATEDIFF(date(NOW()),date(apply_time))) basket_cnt from meal_subscribe
 where `status`!=4
 and contact_name not like '%%测试%%'
-GROUP BY meal_info_id""", engine_slave)
+GROUP BY meal_info_id""", engine_subordinate)
 
 engine_cobub = create_engine('mysql+mysqldb://dba_read:oWXI8Hq2LHfKnS4t@localhost:3310/appmondb', connect_args={'charset':'utf8'})
 phonecall_no = pd.read_sql_query("""select a.meal_info_id, sum(a.affinity_count) phonecall_cnt from
@@ -39,7 +39,7 @@ favourite_no = pd.read_sql_query("""select object_id meal_info_id, sum(1/DATEDIF
 where data_type =1
 and object_type =20
 and create_time < '2016-09-09'
-GROUP BY object_id""", engine_slave)
+GROUP BY object_id""", engine_subordinate)
 
 forward_no = pd.read_sql_query("""select a.meal_info_id, sum(a.affinity_count) forward_cnt from
 (select substring_index(label,',',1) meal_cate, substring_index(label, ',', -1) meal_info_id, 1/DATEDIFF(date(NOW()),date(clientdate)) affinity_count from appmon_eventdata 
@@ -167,7 +167,7 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import MySQLdb
 from sqlalchemy import create_engine
-engine_slave = create_engine('mysql+mysqldb://dbaread:8TvWzIH0n&yiqg3g@localhost:3308/yhouse', connect_args={'charset':'utf8'})
+engine_subordinate = create_engine('mysql+mysqldb://dbaread:8TvWzIH0n&yiqg3g@localhost:3308/yhouse', connect_args={'charset':'utf8'})
 
 meal_info = pd.read_sql_query("""select a.meal_info_id, a.avg_person, a.price, a.interested_num, a.waiting_hour, b.cuisine_style from
 (select id meal_info_id, (persons_max+persons_min)/2 avg_person, price/100 price, meal_host_id, interested_num, leading_minutes/60 waiting_hour from meal_info
@@ -175,7 +175,7 @@ where first_online_time < '2016-09-12'
 and description not like '%%测试%%')a
 LEFT JOIN
 (select id host_info_id, cuisine_style from host_info)b
-on a.meal_host_id = b.host_info_id""", engine_slave)
+on a.meal_host_id = b.host_info_id""", engine_subordinate)
 
 X_train = meal_info[['avg_person', 'price', 'interested_num', 'waiting_hour', 'cuisine_style']]
 X_train.cuisine_style.fillna('无', inplace = True)
@@ -239,8 +239,8 @@ for k in range(10, 31):
     
     
     
-syms = np.genfromtxt('D:\\Software\\kmodes-master\\kmodes-master\\examples/stocks.csv', dtype=str, delimiter=',')[:, 0]
-X = np.genfromtxt('D:\\Software\\kmodes-master\\kmodes-master\\examples/stocks.csv', dtype=object, delimiter=',')[:, 1:]
+syms = np.genfromtxt('D:\\Software\\kmodes-main\\kmodes-main\\examples/stocks.csv', dtype=str, delimiter=',')[:, 0]
+X = np.genfromtxt('D:\\Software\\kmodes-main\\kmodes-main\\examples/stocks.csv', dtype=object, delimiter=',')[:, 1:]
 X[:, 0] = X[:, 0].astype(float)    
     
 kproto = kprototypes.KPrototypes(n_clusters=4, init='Cao', verbose=2)
@@ -263,24 +263,24 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import MySQLdb
 from sqlalchemy import create_engine
-engine_slave = create_engine('mysql+mysqldb://dbaread:8TvWzIH0n&yiqg3g@localhost:3308/yhouse', connect_args={'charset':'utf8'})
+engine_subordinate = create_engine('mysql+mysqldb://dbaread:8TvWzIH0n&yiqg3g@localhost:3308/yhouse', connect_args={'charset':'utf8'})
 engine_cobub = create_engine('mysql+mysqldb://dba_read:oWXI8Hq2LHfKnS4t@localhost:3310/appmondb', connect_args={'charset':'utf8'})    
     
 favourite_aff = pd.read_sql_query(""" select user_info_id, object_id meal_info_id, sum(1/DATEDIFF(date('2016-09-12'),date(create_time))) favourite_affinity from user_info_trajectory
 where data_type =1 
 and object_type = 20
 and create_time < '2016-09-12'
-GROUP BY user_info_id, meal_info_id""", engine_slave)
+GROUP BY user_info_id, meal_info_id""", engine_subordinate)
 
 checkout_aff = pd.read_sql_query("""select user_info_id, meal_info_id, sum(1/DATEDIFF(date('2016-09-12'),date(pay_time))) check_out_affinity from meal_subscribe
 where `status` = 4
 and pay_time < '2016-09-12'
-GROUP BY user_info_id, meal_info_id""", engine_slave)
+GROUP BY user_info_id, meal_info_id""", engine_subordinate)
 
 basket_aff = pd.read_sql_query("""select user_info_id, meal_info_id, sum(1/DATEDIFF(date('2016-09-12'),date(apply_time))) basket_affinity from meal_subscribe
 where `status` != 4
 and apply_time < '2016-09-12'
-GROUP BY user_info_id, meal_info_id""", engine_slave)
+GROUP BY user_info_id, meal_info_id""", engine_subordinate)
 
 phonecall_aff = pd.read_sql_query("""select a.deviceid, a.meal_info_id, sum(a.affinity_count) phonecall_cnt from
 (select deviceid, substring_index(label,',',1) meal_cate, substring_index(label, ',', -1) meal_info_id, 1/DATEDIFF(date('2016-09-12'),date(clientdate)) affinity_count from appmon_eventdata
@@ -331,7 +331,7 @@ and a.meal_info_id != '(null)'
 GROUP BY a.meal_info_id, a.deviceid""", engine_cobub)
 
 deviced_userid = pd.read_sql_query("""select user_info_id, deviceid from user_info_base""",
-                                   engine_slave)
+                                   engine_subordinate)
 
 stepthree = pd.merge(pd.merge(favourite_aff, checkout_aff, on = ['user_info_id', 'meal_info_id'],
                      how = 'outer'), basket_aff, 
